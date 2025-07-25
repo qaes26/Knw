@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>امتحان محوسب: عمليات إدارة المعرفة</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-color: #003366; /* أزرق داكن */
+            --secondary-color: #f4f6f8; /* رمادي فاتح للخلفية */
+            --container-bg: #ffffff;
+            --text-color: #333;
+            --correct-color-bg: #e0f2f1; /* أخضر مائي فاتح */
+            --correct-color-text: #00796b;
+            --incorrect-color-bg: #ffcdd2; /* أحمر فاتح */
+            --incorrect-color-text: #c62828;
+            --button-color: #0056b3;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background-color: var(--container-bg);
+            border-radius: 15px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            text-align: right;
+            border-top: 5px solid var(--primary-color);
+        }
+
+        .quiz-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 30px;
+        }
+
+        .quiz-header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+        
+        #progress-text {
+            font-size: 16px;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+        
+        /* شاشة البدء */
+        #start-screen {
+            padding: 50px 40px;
+            text-align: center;
+        }
+        #start-screen h2 {
+            font-size: 28px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        #start-screen p {
+            font-size: 18px;
+            margin-bottom: 25px;
+        }
+        #name-input {
+            width: 80%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 18px;
+            font-family: 'Cairo', sans-serif;
+            margin-bottom: 25px;
+            text-align: center;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        #name-input:focus {
+            outline: none;
+            border-color: var(--button-color);
+            box-shadow: 0 0 5px rgba(0, 86, 179, 0.3);
+        }
+        #start-btn {
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 40px;
+            font-size: 20px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #start-btn:hover {
+            background-color: #004494;
+        }
+
+
+        .quiz-body {
+            padding: 30px;
+        }
+
+        #question {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .options {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .options li {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .options li:hover:not(.disabled) {
+            background-color: #e9ecef;
+            border-color: var(--button-color);
+            transform: translateY(-2px);
+        }
+        
+        .options li.correct {
+            background-color: var(--correct-color-bg);
+            border-color: var(--correct-color-text);
+            color: var(--correct-color-text);
+            font-weight: 600;
+        }
+
+        .options li.incorrect {
+            background-color: var(--incorrect-color-bg);
+            border-color: var(--incorrect-color-text);
+            color: var(--incorrect-color-text);
+            font-weight: 600;
+        }
+        
+        .options li.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .quiz-footer {
+            padding: 20px 30px;
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+
+        #next-btn, #restart-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #next-btn:hover, #restart-btn:hover {
+            background-color: #218838;
+        }
+
+        #next-btn {
+            display: none;
+        }
+
+        #results-container {
+            padding: 40px;
+            text-align: center;
+        }
+
+        #results-container h2 {
+            font-size: 28px;
+            color: var(--primary-color);
+        }
+
+        #score-text {
+            font-size: 22px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+        }
+        
+        #final-message {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        #credit {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <!-- شاشة البدء -->
+        <div id="start-screen">
+            <h2>امتحان محوسب في إدارة المعرفة</h2>
+            <p>الرجاء إدخال اسمك الكامل لبدء الامتحان</p>
+            <input type="text" id="name-input" placeholder="اكتب اسمك هنا">
+            <button id="start-btn">بدء الامتحان</button>
+        </div>
+
+        <!-- جسم الامتحان (مخفي في البداية) -->
+        <div id="quiz-content" style="display: none;">
+            <div class="quiz-header">
+                <h2 id="quiz-title">عمليات إدارة المعرفة</h2>
+                <p id="progress-text"></p>
+            </div>
+            
+            <div id="quiz-body" class="quiz-body">
+                <h3 id="question">جاري تحميل السؤال...</h3>
+                <ul class="options" id="options-list"></ul>
+            </div>
+            
+            <div id="results-container" style="display: none;">
+                <h2>النتائج النهائية</h2>
+                <p id="score-text"></p>
+                <p id="final-message"></p>
+            </div>
+        </div>
+        
+        <!-- التذييل -->
+        <div class="quiz-footer">
+            <button id="next-btn">السؤال التالي</button>
+            <button id="restart-btn" style="display: none;">العودة للشاشة الرئيسية</button>
+            <p id="credit">اعداد وتقديم الطالب: قيس طلال الجازي</p>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { question: "1. كيف يصف النص العلاقة بين عمليات إدارة المعرفة؟", options: ["عمليات منفصلة تعمل بشكل مستقل.", "عمليات تعمل بشكل تسلسلي ومتكامل حيث تدعم كل عملية التي تليها.", "عمليات اختيارية يمكن تنفيذ بعضها دون الآخر.", "عمليات تتنافس فيما بينها على الموارد."], answer: 1 },
+            { question: "2. ما هو الهدف الأساسي لعملية \"تشخيص المعرفة\"؟", options: ["خلق معرفة جديدة لم تكن موجودة.", "تخزين المعرفة وحمايتها من الضياع.", "تحديد المعرفة المتوفرة ومقارنتها بما هو مطلوب لتحديد الفجوة المعرفية.", "توزيع المعرفة على جميع أفراد المنظمة."], answer: 2 },
+            { question: "3. المحوران الأساسيان اللذان يجب على المنظمة التحرك ضمنهما لتشخيص قدراتها المعرفية هما:", options: ["المحور المالي والمحور التشغيلي.", "محور الموارد البشرية ومحور التكنولوجيا.", "محور العملاء ومحور المنافسين.", "محور مصادر المعرفة الداخلية ومحور مصادر المعرفة الخارجية."], answer: 3 },
+            { question: "4. عملية الحصول على المعرفة الضمنية الكامنة في عقول المبدعين والخبراء تُسمى:", options: ["الشراء (Buying).", "الأسر (Capturing).", "الامتصاص (Absorption).", "الابتكار (Creating)."], answer: 1 },
+            { question: "5. أي من عمليات \"نموذج SECI\" تصف تحويل المعرفة من \"صريح إلى صريح\" وتلعب فيها تكنولوجيا المعلومات دوراً فعالاً؟", options: ["التنشئة (Socialization).", "الأخْرَجة (Externalization).", "التجميع (Combination).", "الأدْخَلة (Internalization)."], answer: 2 },
+            { question: "6. تعلم المتدرب للحرفة من خلال مشاهدة معلمه والعمل معه، هو مثال واضح على عملية:", options: ["التجميع.", "الأخْرَجة.", "التنشئة.", "الأدْخَلة."], answer: 2 },
+            { question: "7. عملية تحويل المعرفة الضمنية إلى صريحة عبر الحوار واستعمال المفاهيم والنماذج هي:", options: ["الأدْخَلة.", "الأخْرَجة.", "التنشئة.", "التجميع."], answer: 1 },
+            { question: "8. عندما يقرأ موظف دليلاً إرشادياً ويطبقه مراراً حتى تصبح المهمة جزءاً من خبرته الشخصية، فإنه يقوم بعملية:", options: ["التنشئة.", "التجميع.", "الأدْخَلة.", "الأخْرَجة."], answer: 2 },
+            { question: "9. ما هو الهدف الرئيسي من عملية \"خزن المعرفة\"؟", options: ["توزيع المعرفة على أكبر عدد من الموظفين.", "بناء ذاكرة مؤسسية تتجاوز الذاكرة البشرية للأفراد.", "تحليل المعرفة لتحديد الفجوات.", "بيع المعرفة لتحقيق أرباح."], answer: 1 },
+            { question: "10. تشير عملية \"الترميز\" (Codify) في سياق خزن المعرفة إلى:", options: ["حذف المعرفة القديمة.", "حماية المعرفة بكلمات سر.", "تنظيم المعرفة ووضعها في أشكال وتصنيفات يمكن الوصول إليها.", "ترجمة المعرفة إلى لغات أخرى."], answer: 2 },
+            { question: "11. ما هو المفهوم الأوسع والأشمل الذي يتضمن نقل المعرفة كخطوة من خطواته؟", options: ["تشخيص المعرفة.", "خزن المعرفة.", "تشارك المعرفة.", "تطبيق المعرفة."], answer: 2 },
+            { question: "12. اللقاءات عند برادات المياه وفي غرف المحادثة تعتبر من أي أشكال توزيع المعرفة؟", options: ["الشكل المقصود والرسمي.", "الشكل غير المقصود وغير الرسمي.", "الشكل التكنولوجي فقط.", "الشكل الإداري المبرمج."], answer: 1 },
+            { question: "13. ما هو الحاجز الأكبر الذي يواجه نجاح إدارة المعرفة كما ورد في النص؟", options: ["ضعف التكنولوجيا المستخدمة.", "قلة الموارد المالية المتاحة.", "خوف الأفراد من مشاركة معارفهم لاعتقادهم أنهم سيفقدون ميزتهم.", "صعوبة فهم المعرفة المعقدة."], answer: 2 },
+            { question: "14. عملية \"تطبيق المعرفة\" تتضمن كل مما يلي ما عدا:", options: ["الاستعمال (Use).", "إعادة الاستعمال (Reuse).", "الاستفادة (Utilisation).", "الأسر (Capturing)."], answer: 3 },
+            { question: "15. كيف يُقاس نجاح المنظمة في برامج إدارة المعرفة في مرحلة التطبيق؟", options: ["بعدد قواعد البيانات التي تم إنشاؤها.", "بحجم المعرفة المنفذة قياساً بما هو متوفر لديها.", "بعدد الخبراء الذين تم توظيفهم.", "بكمية المعرفة التي تم شراؤها من الخارج."], answer: 1 },
+            { question: "16. \"الفجوة بين ما تعرفه المنظمة وما نفذته\" هي من معايير التقييم في مرحلة:", options: ["التشخيص.", "التوليد.", "الخزن.", "التطبيق."], answer: 3 },
+            { question: "17. أي مما يلي يُعتبر من العواقب المؤسفة لتجاهل تطبيق المعرفة؟", options: ["زيادة الإنتاجية بشكل غير متوقع.", "الحاجة إلى إعادة اختراع العجلة.", "تقوية العلاقات مع العملاء.", "تحسن الثقافة التنظيمية."], answer: 1 },
+            { question: "18. عملية \"الابتكار\" (Creating) في سياق توليد المعرفة تعني:", options: ["شراء معرفة جاهزة.", "فهم واستيعاب المعرفة الظاهرة.", "توليد معرفة جديدة غير مكتشفة وغير مستنسخة.", "تحديد المعرفة المتوفرة بالفعل."], answer: 2 },
+            { question: "19. لا يجب على المنظمة خزن كل المعرفة، بل يجب أن تكون المعرفة المخزنة:", options: ["قديمة جداً لتكون مرجعاً تاريخياً.", "ذات قيمة وموثوقية ومهمة.", "سهلة الفهم للجميع.", "متعلقة فقط بالشؤون المالية."], answer: 1 },
+            { question: "20. ما الذي يميز مفهوم \"تشارك المعرفة\" عن \"نقل المعرفة\"؟", options: ["النقل أوسع وأشمل.", "المشاركة أكثر تفاعلية وتتعلق بالمعرفة الضمنية بشكل أكبر.", "النقل يتم فقط عبر الوسائل اليدوية.", "لا يوجد فرق بين المفهومين."], answer: 1 },
+            { question: "21. دور \"مدير المعرفة\" في مرحلة التطبيق هو:", options: ["العمل كعنصر مكرس للحث على التطبيق الجيد والتنفيذ الدقيق.", "التركيز فقط على خزن المعرفة.", "منع الموظفين من الوصول إلى المعرفة.", "تشخيص الفجوة المعرفية فقط."], answer: 0 },
+            { question: "22. ما هي أول خطوة في دورة عمليات إدارة المعرفة؟", options: ["توليد المعرفة.", "خزن المعرفة.", "تشخيص المعرفة.", "تطبيق المعرفة."], answer: 2 },
+            { question: "23. أي من العوائق التالية لمشاركة المعرفة يرتبط بـ \"القدرة الاستيعابية للذاكرة التنظيمية\"؟", options: ["الفروقات الثقافية بين الموظفين.", "ضعف استخدام تكنولوجيا المعلومات في التخزين والنشر.", "الخوف من فقدان الميزة الشخصية.", "عدم وجود مكافآت للمشاركة."], answer: 1 },
+            { question: "24. العلاقة بين المعرفة والابتكار كما يصفها النص هي:", options: ["المعرفة تأتي دائماً بعد الابتكار.", "الابتكار لا علاقة له بالمعرفة.", "عملية مزدوجة ذات اتجاهين، فكل منهما مصدر للآخر.", "المعرفة تلغي الحاجة إلى الابتكار."], answer: 2 },
+            { question: "25. لماذا تُعتبر عمليتا \"التجسيد والتذويب\" (الأدْخَلة والتنشئة) أهم مرحلتين في توليد المعرفة؟", options: ["لأنهما الأسهل في التطبيق.", "لأنهما لا تتطلبان أي موارد.", "لأنهما تتطلبان الالتزام الشخصي من الفرد.", "لأنهما تعتمدان كلياً على التكنولوجيا."], answer: 2 }
+        ];
+
+        // نفس كود جافاسكريبت من الرد السابق
+        const startScreenEl = document.getElementById('start-screen');
+        const nameInputEl = document.getElementById('name-input');
+        const startBtn = document.getElementById('start-btn');
+        const quizContentEl = document.getElementById('quiz-content');
+        
+        const questionEl = document.getElementById('question');
+        const optionsListEl = document.getElementById('options-list');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const progressTextEl = document.getElementById('progress-text');
+
+        const quizBodyEl = document.getElementById('quiz-body');
+        const resultsContainerEl = document.getElementById('results-container');
+        const scoreTextEl = document.getElementById('score-text');
+        const finalMessageEl = document.getElementById('final-message');
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userName = '';
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            nextBtn.style.display = 'none';
+            restartBtn.style.display = 'none';
+            resultsContainerEl.style.display = 'none';
+            quizBodyEl.style.display = 'block';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            resetState();
+            const currentQuestion = questions[currentQuestionIndex];
+            questionEl.innerText = currentQuestion.question;
+            progressTextEl.innerText = `السؤال ${currentQuestionIndex + 1} من ${questions.length}`;
+
+            currentQuestion.options.forEach((option, index) => {
+                const li = document.createElement('li');
+                li.innerText = option;
+                li.dataset.index = index;
+                li.addEventListener('click', selectAnswer);
+                optionsListEl.appendChild(li);
+            });
+        }
+        
+        function resetState() {
+            nextBtn.style.display = 'none';
+            while(optionsListEl.firstChild) {
+                optionsListEl.removeChild(optionsListEl.firstChild);
+            }
+        }
+
+        function selectAnswer(e) {
+            const selectedLi = e.target;
+            const selectedAnswerIndex = parseInt(selectedLi.dataset.index);
+            const correctAnserIndex = questions[currentQuestionIndex].answer;
+
+            if(selectedAnswerIndex === correctAnserIndex) {
+                score++;
+                selectedLi.classList.add('correct');
+            } else {
+                selectedLi.classList.add('incorrect');
+            }
+            
+            Array.from(optionsListEl.children).forEach((li, index) => {
+                if(index === correctAnserIndex) {
+                    li.classList.add('correct');
+                }
+                li.classList.add('disabled');
+                li.removeEventListener('click', selectAnswer);
+            });
+            
+            nextBtn.style.display = 'block';
+        }
+        
+        function showResults() {
+            quizBodyEl.style.display = 'none';
+            nextBtn.style.display = 'none';
+            resultsContainerEl.style.display = 'block';
+            
+            const scorePercentage = Math.round((score / questions.length) * 100);
+            scoreTextEl.innerText = `نتيجة الطالب/ة: ${userName}\n${score} من ${questions.length} (${scorePercentage}%)`;
+            
+            let message = '';
+            if (scorePercentage >= 90) {
+                message = 'ممتاز! لديك فهم عميق للمادة.';
+            } else if (scorePercentage >= 75) {
+                message = 'جيد جداً! استيعابك للمفاهيم رائع.';
+            } else if (scorePercentage >= 50) {
+                message = 'جيد. تحتاج إلى مراجعة بعض النقاط.';
+            } else {
+                message = 'تحتاج إلى المزيد من المراجعة والتركيز.';
+            }
+            finalMessageEl.innerText = message;
+            restartBtn.style.display = 'block';
+        }
+
+        startBtn.addEventListener('click', () => {
+            userName = nameInputEl.value.trim();
+            if (!userName) {
+                alert('الرجاء إدخال اسمك لبدء الامتحان.');
+                return;
+            }
+            startScreenEl.style.display = 'none';
+            quizContentEl.style.display = 'block';
+            startQuiz();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if(currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        });
+        
+        restartBtn.addEventListener('click', () => {
+            quizContentEl.style.display = 'none';
+            startScreenEl.style.display = 'block';
+            nameInputEl.value = '';
+            progressTextEl.innerText = '';
+        });
+
+    </script>
+
+</body>
+</html>
